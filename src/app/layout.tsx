@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import { Source_Sans_3, Manjari } from "next/font/google";
 import { AuthProvider } from "@/providers/auth";
-import { cn } from "@/lib/utils";
 import { Header } from "@/components/shared/header";
+import { cn } from "@/lib/utils";
+import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const source = Source_Sans_3({ subsets: ["latin"], variable: "--body-font" });
+const manjari = Manjari({
+	weight: ["100", "400", "700"],
+	subsets: ["latin"],
+	variable: "--display-font"
+});
 
 export const metadata: Metadata = {
 	title: "Crunchyroll",
@@ -18,8 +23,12 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="pt-br" suppressHydrationWarning>
-			<body className={cn("dark", inter.className)}>
+		<html
+			lang="pt-br"
+			suppressHydrationWarning
+			className={`${source.variable} ${manjari.variable}`}
+		>
+			<body className={cn("dark", source.variable)}>
 				<AuthProvider>
 					<Header />
 					{children}

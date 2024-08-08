@@ -10,6 +10,10 @@ const config = {
 	],
 	prefix: "",
 	theme: {
+		fontFamily: {
+			display: "var(--display-font)",
+			body: "var(--body-font)"
+		},
 		container: {
 			center: true,
 			padding: "2rem",
