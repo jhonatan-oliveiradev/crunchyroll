@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Movie {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String
+  genre         String[]
+  releaseDate   DateTime
+  duration      Int
+  director      String
+  cast          String[]
+  rating        Float?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  images        MovieImages @relation(fields: [movieImagesId], references: [id])
+  video         MovieVideo  @relation(fields: [movieVideoId], references: [id])
+  seasons       Season[]
+  movieImagesId String      @db.ObjectId
+  movieVideoId  String      @db.ObjectId
+}
+
+model MovieImages {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  movieId      String  @db.ObjectId
+  coverUrl     String
+  thumbnailUrl String
+  Movie        Movie[]
+}
+
+model MovieVideo {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  movieId   String   @db.ObjectId
+  url       String
+  quality   String // Ex: "1080p", "4K"
+  language  String // Ex: "en", "pt"
+  subtitles String[]
+  Movie     Movie[]
+}
+
+model Season {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  movieId      String    @db.ObjectId
+  title        String
+  seasonNumber Int
+  episodes     Episode[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Movie        Movie     @relation(fields: [movieId], references: [id])
+}
+
+model Episode {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  seasonId       String       @db.ObjectId
+  title          String
+  description    String
+  duration       Int // Em minutos
+  releaseDate    DateTime
+  video          EpisodeVideo @relation(fields: [episodeVideoId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  Season         Season       @relation(fields: [seasonId], references: [id])
+  episodeVideoId String       @db.ObjectId
+}
+
+model EpisodeVideo {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  episodeId String    @db.ObjectId
+  url       String
+  quality   String // Ex: "1080p", "4K"
+  language  String // Ex: "en", "pt"
+  subtitles String[]
+  Episode   Episode[]
+}
+
+model User {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String?
+  email          String?       @unique
+  emailVerified  DateTime?     @map("email_verified")
+  password       String?
+  image          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  profiles       Profile[]
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?       @db.ObjectId
+  accounts       Account[]
+  sessions       Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @map("user_id") @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id") @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Profile {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  name          String
+  avatarUrl     String?
+  preferences   Preferences @relation(fields: [preferencesId], references: [id])
+  User          User        @relation(fields: [userId], references: [id])
+  preferencesId String      @db.ObjectId
+}
+
+model Preferences {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  profileId String    @db.ObjectId
+  language  String // Ex: "en", "pt"
+  genres    String[]
+  Profile   Profile[]
+}
+
+model Subscription {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  plan      String // Ex: "Basic", "Standard", "Premium"
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  User      User[]
+}
